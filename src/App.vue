@@ -44,6 +44,8 @@ getCityWeather()
 }
 
 getCurrentWeather()*/
+
+// git test
 </script>
 
 <template>
