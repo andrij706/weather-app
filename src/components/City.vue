@@ -1,7 +1,10 @@
 <script setup>
 import { ref } from 'vue';
+import {useRouter} from 'vue-router'
 import db from '../firebase/firebaseInit';
 import {collection, where, query, getDocs, deleteDoc, doc} from 'firebase/firestore'
+
+const router = useRouter()
 
 const {city, edit} = defineProps(['city', 'edit'])
 
@@ -10,6 +13,15 @@ const kelvinToCelsius = () =>{
 }
 
 const id = ref(null)
+const editCity = ref(null)
+
+const goToWeather = (e) =>{
+    if(e.target === editCity.value) {
+
+    } else {
+        router.push({name: 'Weather', params: {city: city.city}})
+    }
+}
 
 const removeCity = async () => {
     try {
@@ -29,8 +41,8 @@ const removeCity = async () => {
 </script>
 
 <template>
-    <div class="city">
-        <i v-if="edit" @click="removeCity" class="far fa-trash-alt edit" ref="edit"></i>
+    <div @click="goToWeather" class="city">
+        <i v-if="edit" @click="removeCity" class="far fa-trash-alt edit" ref="editCity"></i>
         <span>{{ city.city }}</span>
         <div class="weather">
             <span>{{ kelvinToCelsius() }} &deg;</span>
