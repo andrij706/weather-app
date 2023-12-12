@@ -4,7 +4,7 @@ import axios from 'axios';
 import db from '../firebase/firebaseInit';
 import {collection, setDoc, doc} from 'firebase/firestore'
 
-const {APIkey} = defineProps(['APIkey'])
+const {APIkey, cities} = defineProps(['APIkey', 'cities'])
 const emit = defineEmits()
 const modal = ref(null)
 const city = ref('')
@@ -18,6 +18,8 @@ const closeModal = (e) => {
 const addNewCity = async () => {
     if (city.value ===''){
         alert('Field cannot be empty!')
+    } else if(cities.some(res => res.city === city.value.toLowerCase())) {
+        alert(`${city.value} already exists`)
     } else {
         try{
             const res = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city.value}&appid=${APIkey}`)
@@ -26,19 +28,16 @@ const addNewCity = async () => {
             const citiesCollection = collection(db, 'cities')
             const newDocRef = doc(citiesCollection)
             setDoc(newDocRef, {
-                city: city.value,
+                city: city.value.toLowerCase(),
                 currentWheater: data
             }).then(
                 () => emit('close-modal')
             )
         } catch(err) {
-            alert('City not found')
+            alert(`${city.value} does not exist, please try again!`)
         }
     }
 }
-
-
-
 
 </script>
 

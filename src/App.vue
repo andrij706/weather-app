@@ -15,6 +15,7 @@ const addCityActive = ref(null)
 const route = useRoute()
 const isDay = ref(null)
 const isNight=ref(null)
+const isLoading = ref(true)
 
 const dayTime = () => {
   isDay.value = !isDay.value
@@ -53,6 +54,9 @@ watchEffect(() => {
 const getCityWeather = async () => {
   const q = await query(collection(db, 'cities'))
   const querySnapshot = await onSnapshot(q, (snapshot) => {
+    if(snapshot.docs.length === 0){
+      isLoading.value = 0
+    }
     snapshot.docChanges().forEach(async (change) =>{
       if (change.type === 'added' && !change.doc.Nd){
         try{
@@ -62,6 +66,7 @@ const getCityWeather = async () => {
             currentWheater: data
           }).then(() => {
             cities.value.push(change.doc.data())
+            isLoading.value = false
           })
         }catch(err){
           console.log(err)
@@ -80,29 +85,39 @@ getCityWeather()
 </script>
 
 <template>
+  <div class="loading">
+
+  </div>
   <div class="main">
-    <Modal 
-      v-if="modalOpen" 
-      v-on:close-modal="toggleModal" 
-      :APIkey="APIkey"
-    />
-    <Navigation 
-      @add-city="toggleModal" 
-      @edit-city="toggleEdit" 
-      :addCityActive="addCityActive" 
-      :isDay="isDay" 
-      :isNight="isNight"
-    />
-    <RouterView 
-      :cities="cities" 
-      :edit="edit" 
-      :APIkey="APIkey" 
-      @is-day="dayTime" 
-      @is-night="nightTime" 
-      @resetDays="resetDays"
-      :isDay="isDay" 
-      :isNight="isNight"
-    />
+    <div v-if="isLoading" class="loading">
+      <span></span>
+    </div>
+    <div v-else class="app">
+      <Modal 
+        v-if="modalOpen" 
+        v-on:close-modal="toggleModal" 
+        :APIkey="APIkey"
+        :cities="cities"
+      />
+      <Navigation 
+        @add-city="toggleModal" 
+        @edit-city="toggleEdit" 
+        :addCityActive="addCityActive" 
+        :isDay="isDay" 
+        :isNight="isNight"
+      />
+      <RouterView 
+        :cities="cities" 
+        :edit="edit" 
+        :APIkey="APIkey" 
+        @is-day="dayTime" 
+        @is-night="nightTime" 
+        @resetDays="resetDays"
+        @add-city="toggleModal"
+        :isDay="isDay" 
+        :isNight="isNight"
+      />
+    </div>
   </div>
 </template>
 
@@ -137,4 +152,28 @@ getCityWeather()
     padding: 0 20px;
   }
 }
+
+.loading {
+        @keyframes spin {
+            to {
+                transform: rotateZ(360deg);
+            }
+        }
+        display: flex;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+
+        span{
+            display: block;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+            border: 2px solid transparent;
+            border-top-color: #142a5f;
+            border-radius: 50%;
+            animation: spin ease 1000ms infinite;
+        }
+    }
 </style>
