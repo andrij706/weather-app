@@ -4,6 +4,10 @@ import axios from 'axios';
 import db from '../firebase/firebaseInit';
 import {collection, query, where, getDocs} from 'firebase/firestore'
 import {useRoute} from 'vue-router'
+import CurrentWeathers from '../components/CurrentWeathers.vue'
+import HourlyWeather from '../components/HourlyWeather.vue';
+import WeeklyForecast from '../components/WeeklyForecast.vue';
+import AdditionalInfo from '../components/AdditionalInfo.vue';
 
 const {APIkey, isDay, isNight} = defineProps(['APIkey', 'isDay', 'isNight'])
 const route = useRoute()
@@ -25,7 +29,6 @@ const getWeather = async () => {
         const querySnapshot = await getDocs(q)
         querySnapshot.forEach((res) =>{
             currentWheater.value = res.data().currentWheater
-            console.log(currentWheater.value)
             axios.get(
                 `https://api.openweathermap.org/data/2.5/forecast?lat=${res.data().currentWheater.coord.lat}&lon=${res.data().currentWheater.coord.lon}&appid=${APIkey}` 
             ).then(resData => {
@@ -35,7 +38,6 @@ const getWeather = async () => {
                 getCurrentTime()
             })
         })
-        console.log(querySnapshot)
     }catch(err) {
         console.log(err)
     }
@@ -64,7 +66,10 @@ const getCurrentTime = () => {
         </div>
         <div v-else class="weather" :class="{night: isNight, day: isDay}">
             <div class="weather-wrap" >
-
+                <CurrentWeathers :isDay="isDay" :isNight="isNight" :currentWheater="currentWheater"/>
+                <HourlyWeather :forecast="forecast"/>
+                <WeeklyForecast :forecast="forecast"/>
+                <AdditionalInfo :currentWheater="currentWheater"/>
             </div>
         </div>
     </div>
@@ -97,7 +102,7 @@ const getCurrentTime = () => {
 
     .weather {
         transition: 500ms ease;
-        //overflow: scroll;
+        overflow: scroll;
         width: 100%;
         height: 100%;
 
@@ -105,6 +110,9 @@ const getCurrentTime = () => {
             overflow: hidden;
             max-width: 1024px;
             margin: 0 auto;
+        }
+        &::-webkit-scrollbar {
+            display: none;
         }
     }
 </style>
